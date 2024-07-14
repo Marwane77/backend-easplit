@@ -195,25 +195,25 @@ router.get("/user-events/:token", (req, res) => {
 //     });
 // });
 
-//Route test pour upload les fichiers
-// router.post("/upload", async (req, res) => {
-//   try {
-//     if (!req.files || !req.files.photoFromFront) {
-//       return res.status(400).json({ result: false, error: "No file uploaded" });
-//     }
+// Route test pour upload les fichiers
+router.post("/upload", async (req, res) => {
+  try {
+    if (!req.files || !req.files.photoFromFront) {
+      return res.status(400).json({ result: false, error: "No file uploaded" });
+    }
 
-//     const photoPath = `/tmp/${uniqid()}.jpg`;
-//     await req.files.photoFromFront.mv(photoPath);
+    const photoPath = `/tmp/${uniqid()}.jpg`;
+    await req.files.photoFromFront.mv(photoPath);
 
-//     const resultCloudinary = await cloudinary.uploader.upload(photoPath);
-//     res.json({ result: true, url: resultCloudinary.secure_url });
-//     console.log(resultCloudinary.secure_url);
+    const resultCloudinary = await cloudinary.uploader.upload(photoPath);
+    res.json({ result: true, url: resultCloudinary.secure_url });
+    console.log(resultCloudinary.secure_url);
 
-//     fs.unlinkSync(photoPath);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ result: false, error: error.message });
-//   }
-// });
+    fs.unlinkSync(photoPath);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ result: false, error: error.message });
+  }
+});
 
 module.exports = router;
