@@ -12,6 +12,9 @@ const uid2 = require("uid2"); // Importe le module uid2 pour générer des ident
 const cloudinary = require("cloudinary").v2; // Importe le module cloudinary pour stocker des fichiers
 const uniqid = require("uniqid"); // Importe le module uniqid pour générer des identifiants uniques
 const fs = require("fs"); // Importe le module fs pour interagir avec le système de fichiers
+const { promisify } = require('util');
+const mkdirAsync = promisify(fs.mkdir);
+
 
 //const { addUserToGuest } = require("./users");
 
@@ -193,26 +196,36 @@ router.get("/user-events/:token", (req, res) => {
 //       console.log("Found event:", event);
 //       res.json({ result: true, organizer: event.organizer });
 //     });
-// });
 
-// Route test pour upload les fichiers
+
 router.post("/upload", async (req, res) => {
+  const dirPath = 'C:\\tmp';
   try {
+    // Create directory if it doesn't exist
+    await mkdirAsync(dirPath, { recursive: true });
+    console.log(`Directory created or already exists: ${dirPath}`);
+
     if (!req.files || !req.files.photoFromFront) {
       return res.status(400).json({ result: false, error: "No file uploaded" });
     }
 
-    const photoPath = `/tmp/${uniqid()}.jpg`;
-    await req.files.photoFromFront.mv(photoPath);
+    const photoPath = `${dirPath}\\${uniqid()}.jpg`;
+    console.log(`Moving uploaded file to: ${photoPath}`);
 
+    // Convert mv to a promise-based function
+    const mvAsync = promisify(req.files.photoFromFront.mv);
+
+    // Move the uploaded file
+    await mvAsync(photoPath);
+    console.log(`File moved successfully: ${photoPath}`);
+
+    // Upload the file to Cloudinary
     const resultCloudinary = await cloudinary.uploader.upload(photoPath);
     res.json({ result: true, url: resultCloudinary.secure_url });
-    console.log(resultCloudinary.secure_url);
-
-    fs.unlinkSync(photoPath);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ result: false, error: error.message });
+    // Log the error message if available, otherwise log the entire error object
+    console.error(`Error: ${error.message || JSON.stringify(error)}`);
+    res.status(500).json({ result: false, error: "Server error" });
   }
 });
 
